@@ -72,6 +72,7 @@ def check_market_hours_ist():
 
 
 def main():
+    st_autorefresh(interval=60 * 1000, key="refresh")
     # Fresh modern UI header
     st.markdown("""
     <div style="background: linear-gradient(90deg, #1e3c72 0%, #2a5298 100%); padding: 2rem; border-radius: 10px; margin-bottom: 2rem;">
