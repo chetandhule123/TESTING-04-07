@@ -11,6 +11,7 @@ import pytz
 import time
 import requests
 
+
 # Import custom modules
 from scanners.macd_scanner import MACDScanner
 from scanners.macd_scanner_original import MACDScannerOriginal
@@ -20,6 +21,8 @@ from scanners.support_level_scanner import SupportLevelScanner
 from utils.market_indices import MarketIndices
 from utils.data_fetcher import DataFetcher
 from datetime import datetime, timedelta
+from streamlit_autorefresh import st_autorefresh
+
 
 # Page configuration
 st.set_page_config(
@@ -28,6 +31,9 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+# ⏱️ Refresh every 60 seconds regardless of browser tab state
+st_autorefresh(interval=60 * 1000, key="refresh")
+
 
 # Initialize session state
 if 'last_scan_time' not in st.session_state:
@@ -562,27 +568,15 @@ def send_telegram_notification(scan_results):
 
 
 
+
+
 def handle_auto_scan():
-    """Handle automatic scanning with immediate first scan"""
     current_time = get_ist_time()
-    
-    # First run - scan immediately if no previous scan time
-    if st.session_state.last_scan_time is None:
+    interval_minutes = max(st.session_state.scan_interval, 15)
+    next_scan_time = st.session_state.last_scan_time + timedelta(minutes=interval_minutes)
+
+    if current_time >= next_scan_time:
         run_all_scanners()
-        st.session_state.last_scan_time = current_time
-        time.sleep(1)  # Small delay before refresh
-        st.rerun()
-    else:
-        # Subsequent runs - check if 15 minutes have passed
-        next_scan = st.session_state.last_scan_time + timedelta(minutes=15)
-        if current_time >= next_scan:
-            run_all_scanners()
-            st.session_state.last_scan_time = current_time
-            time.sleep(1)  # Small delay before refresh
-            st.rerun()
-    
-    # Remove the visual indicator from here since we're handling it in update_counters
-    time.sleep(1)
 
 
 def export_results():
